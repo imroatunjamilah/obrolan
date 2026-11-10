@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { verifyChatToken } from '@/lib/auth';
 
 const PREVIEW_LEN = 80;
 const STUDENT_SENDERS = ['mahasiswa', 'bot'] as const;
@@ -60,16 +61,38 @@ export async function GET() {
 
 // POST /api/chat/conversations
 // Create a new empty conversation (status starts as "normal").
-export async function POST() {
+// Body opsional: { registrationId, chatToken } — jika token valid, percakapan
+// ditautkan ke pendaftaran mahasiswa agar terlihat di panel petugas.
+export async function POST(req: Request) {
   try {
+    let registrationId: string | null = null;
+    try {
+      const body = await req.json();
+      if (body && typeof body === 'object') {
+        const regId = typeof (body as Record<string, unknown>).registrationId === 'string'
+          ? (body as Record<string, unknown>).registrationId as string
+          : '';
+        const token = typeof (body as Record<string, unknown>).chatToken === 'string'
+          ? (body as Record<string, unknown>).chatToken as string
+          : '';
+        if (regId && token && verifyChatToken(regId, token)) {
+          const reg = await db.registration.findUnique({ where: { id: regId }, select: { id: true } });
+          if (reg) registrationId = reg.id;
+        }
+      }
+    } catch {
+      // body kosong/tidak valid -> percakapan tanpa tautan pendaftaran
+    }
+
     const conv = await db.conversation.create({
-      data: { title: 'Percakapan Baru', status: 'normal' },
+      data: { title: 'Percakapan Baru', status: 'normal', registrationId },
     });
     return NextResponse.json(
       {
         id: conv.id,
         title: conv.title,
         status: conv.status,
+        registrationId: conv.registrationId,
         createdAt: conv.createdAt.toISOString(),
       },
       { status: 201 }

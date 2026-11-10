@@ -2,6 +2,8 @@
 
 import { useCallback, useState } from 'react';
 import { MessageCircleHeart, Menu } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import {
   Sheet,
   SheetContent,
@@ -9,19 +11,31 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import { Sidebar } from '@/components/chat/sidebar';
+import { Sidebar, type MainView } from '@/components/chat/sidebar';
 import { ChatWindow } from '@/components/chat/chat-window';
 import { EmptyState } from '@/components/chat/empty-state';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { Dass21Flow } from '@/components/screening/dass21-flow';
+import { RegistrationForm } from '@/components/registration/registration-form';
+import { AdminPanel } from '@/components/admin/admin-panel';
+import { loadStudentSession } from '@/lib/student-session';
 
 async function createConversationApi(): Promise<{ id: string }> {
-  const res = await fetch('/api/chat/conversations', { method: 'POST' });
+  // Sertakan konteks pendaftaran bila ada (percakapan terhubung ke mahasiswa).
+  const reg = loadStudentSession();
+  const body = reg
+    ? JSON.stringify({ registrationId: reg.registrationId, chatToken: reg.chatToken })
+    : undefined;
+  const res = await fetch('/api/chat/conversations', {
+    method: 'POST',
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body,
+  });
   if (!res.ok) throw new Error('Gagal membuat percakapan.');
   return res.json();
 }
 
 export default function Home() {
+  const [view, setView] = useState<MainView>('konseling');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const qc = useQueryClient();
@@ -42,6 +56,12 @@ export default function Home() {
       return;
     }
     setSelectedId(id);
+    setView('konseling');
+    setMobileOpen(false);
+  }, []);
+
+  const handleNavigate = useCallback((next: MainView) => {
+    setView(next);
     setMobileOpen(false);
   }, []);
 
@@ -49,9 +69,16 @@ export default function Home() {
     setSelectedId((curr) => (curr === deletedId ? null : curr));
   }, []);
 
+  const viewTitles: Record<MainView, string> = {
+    konseling: 'Ruang Obrolan Konseling',
+    dass21: 'Skrining DASS-21',
+    registrasi: 'Pendaftaran Layanan',
+    petugas: 'Panel Petugas',
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* Top header (sticky) — UPA BK branding restored */}
+      {/* Top header (sticky) — UPA BK branding */}
       <header
         className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur"
         role="banner"
@@ -62,7 +89,7 @@ export default function Home() {
             type="button"
             onClick={() => setMobileOpen(true)}
             className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 md:hidden"
-            aria-label="Buka daftar percakapan"
+            aria-label="Buka menu layanan"
           >
             <Menu className="size-5" aria-hidden="true" />
           </button>
@@ -74,16 +101,16 @@ export default function Home() {
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">
-              UPA BK • Ruang Obrolan
+              UPA BK UTM • Ruang Layanan Konseling
             </h1>
             <p className="truncate text-[11px] text-muted-foreground sm:text-xs">
-              Asisten awal berbasis AI untuk mahasiswa
+              {viewTitles[view]} · pendaftaran, skrining DASS-21, dan obrolan ber-LLM
             </p>
           </div>
         </div>
       </header>
 
-      {/* Main split: sidebar + chat window */}
+      {/* Main split: sidebar + content */}
       <main
         className="mx-auto flex w-full max-w-[1400px] flex-1 overflow-hidden"
         role="main"
@@ -91,12 +118,14 @@ export default function Home() {
         {/* Desktop sidebar (>= md) — fixed 320px column */}
         <aside
           className="hidden w-80 shrink-0 border-r bg-card/50 md:flex md:flex-col"
-          aria-label="Daftar percakapan"
+          aria-label="Menu layanan dan daftar percakapan"
         >
           <Sidebar
             selectedId={selectedId}
             onSelect={handleSelect}
             onDeleted={handleDeleted}
+            activeView={view}
+            onNavigate={handleNavigate}
           />
         </aside>
 
@@ -109,10 +138,10 @@ export default function Home() {
                   className="size-4 text-primary"
                   aria-hidden="true"
                 />
-                Hasil Percakapan
+                Menu Layanan
               </SheetTitle>
               <SheetDescription className="sr-only">
-                Daftar percakapan tersimpan
+                Navigasi modul dan daftar percakapan
               </SheetDescription>
             </SheetHeader>
             <div className="min-h-0 flex-1 overflow-hidden">
@@ -120,25 +149,35 @@ export default function Home() {
                 selectedId={selectedId}
                 onSelect={handleSelect}
                 onDeleted={handleDeleted}
+                activeView={view}
+                onNavigate={handleNavigate}
               />
             </div>
           </SheetContent>
         </Sheet>
 
-        {/* Chat window or empty state */}
+        {/* Konten modul aktif */}
         <div className="flex min-w-0 flex-1 flex-col">
-          {selectedId ? (
-            <ChatWindow
-              key={selectedId}
-              conversationId={selectedId}
-              onDeleted={handleDeleted}
-              onOpenSidebar={() => setMobileOpen(true)}
-            />
+          {view === 'konseling' ? (
+            selectedId ? (
+              <ChatWindow
+                key={selectedId}
+                conversationId={selectedId}
+                onDeleted={handleDeleted}
+                onOpenSidebar={() => setMobileOpen(true)}
+              />
+            ) : (
+              <EmptyState
+                onStart={() => createMut.mutate()}
+                loading={createMut.isPending}
+              />
+            )
+          ) : view === 'dass21' ? (
+            <Dass21Flow onNavigate={handleNavigate} />
+          ) : view === 'registrasi' ? (
+            <RegistrationForm onNavigate={handleNavigate} />
           ) : (
-            <EmptyState
-              onStart={() => createMut.mutate()}
-              loading={createMut.isPending}
-            />
+            <AdminPanel />
           )}
         </div>
       </main>

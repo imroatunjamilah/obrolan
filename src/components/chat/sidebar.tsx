@@ -1,7 +1,16 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2, MessageSquare, Loader2 } from 'lucide-react';
+import {
+  ClipboardList,
+  MessagesSquare,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  MessageSquare,
+  Loader2,
+  UserPlus,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -18,13 +27,25 @@ import { Button } from '@/components/ui/button';
 import type { ConversationSummary } from '@/lib/types';
 import { relativeTime } from '@/lib/time';
 import { StatusBadge } from './status-badge';
+import { loadStudentSession } from '@/lib/student-session';
 import { cn } from '@/lib/utils';
+
+export type MainView = 'konseling' | 'dass21' | 'registrasi' | 'petugas';
 
 interface SidebarProps {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onDeleted?: (deletedId: string) => void;
+  activeView: MainView;
+  onNavigate: (view: MainView) => void;
 }
+
+const NAV_ITEMS: Array<{ view: MainView; label: string; icon: typeof MessagesSquare }> = [
+  { view: 'konseling', label: 'Konseling', icon: MessagesSquare },
+  { view: 'dass21', label: 'Skrining DASS-21', icon: ClipboardList },
+  { view: 'registrasi', label: 'Pendaftaran', icon: UserPlus },
+  { view: 'petugas', label: 'Petugas', icon: ShieldCheck },
+];
 
 async function fetchConversations(): Promise<ConversationSummary[]> {
   const res = await fetch('/api/chat/conversations', { cache: 'no-store' });
@@ -34,7 +55,16 @@ async function fetchConversations(): Promise<ConversationSummary[]> {
 }
 
 async function createConversation(): Promise<{ id: string; title: string }> {
-  const res = await fetch('/api/chat/conversations', { method: 'POST' });
+  // Sertakan konteks pendaftaran bila ada (percakapan terhubung ke mahasiswa).
+  const reg = loadStudentSession();
+  const body = reg
+    ? JSON.stringify({ registrationId: reg.registrationId, chatToken: reg.chatToken })
+    : undefined;
+  const res = await fetch('/api/chat/conversations', {
+    method: 'POST',
+    headers: body ? { 'Content-Type': 'application/json' } : undefined,
+    body,
+  });
   if (!res.ok) throw new Error('Gagal membuat percakapan');
   return res.json();
 }
@@ -44,11 +74,16 @@ async function deleteConversation(id: string): Promise<void> {
   if (!res.ok) throw new Error('Gagal menghapus percakapan');
 }
 
-// The sidebar is the "Hasil Percakapan" (conversation history) view: a
-// scrollable list of past conversations with the 3-layer safety status badge
-// (Normal / Krisis / Pendampingan), title, relative time, message count, and
-// a trash action with confirmation.
-export function Sidebar({ selectedId, onSelect, onDeleted }: SidebarProps) {
+// Sidebar = navigasi modul (Konseling, Skrining DASS-21, Pendaftaran, Petugas)
+// + daftar "Hasil Percakapan" dengan badge status keamanan 3 lapis
+// (Normal / Krisis / Pendampingan), waktu relatif, jumlah pesan, dan hapus.
+export function Sidebar({
+  selectedId,
+  onSelect,
+  onDeleted,
+  activeView,
+  onNavigate,
+}: SidebarProps) {
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery<ConversationSummary[]>({
     queryKey: ['conversations'],
@@ -78,20 +113,60 @@ export function Sidebar({ selectedId, onSelect, onDeleted }: SidebarProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="px-3 pt-3 pb-2">
-        <Button
-          onClick={() => createMut.mutate()}
-          disabled={createMut.isPending}
-          className="w-full gap-2"
-        >
-          {createMut.isPending ? (
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <Plus className="size-4" aria-hidden="true" />
-          )}
-          Percakapan Baru
-        </Button>
-      </div>
+      {/* Navigasi modul layanan */}
+      <nav
+        className="grid grid-cols-2 gap-1.5 px-3 pt-3"
+        aria-label="Modul layanan UPA BK"
+      >
+        {NAV_ITEMS.map((item) => {
+          const active = activeView === item.view;
+          return (
+            <button
+              key={item.view}
+              type="button"
+              onClick={() => onNavigate(item.view)}
+              aria-current={active ? 'page' : undefined}
+              className={cn(
+                'flex flex-col items-center gap-1 rounded-lg border px-2 py-2.5 text-[11px] font-medium leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
+                active
+                  ? 'border-primary/40 bg-primary/10 text-primary'
+                  : 'border-transparent bg-muted/50 text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+              )}
+            >
+              <item.icon className="size-4" aria-hidden="true" />
+              {item.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {activeView === 'konseling' ? (
+        <div className="px-3 pt-3 pb-2">
+          <Button
+            onClick={() => createMut.mutate()}
+            disabled={createMut.isPending}
+            className="w-full gap-2"
+          >
+            {createMut.isPending ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Plus className="size-4" aria-hidden="true" />
+            )}
+            Percakapan Baru
+          </Button>
+        </div>
+      ) : (
+        <div className="px-3 pt-3 pb-2">
+          <Button
+            variant="outline"
+            onClick={() => onNavigate('konseling')}
+            className="w-full gap-2"
+          >
+            <MessagesSquare className="size-4" aria-hidden="true" />
+            Kembali ke Konseling
+          </Button>
+        </div>
+      )}
 
       <div className="px-3 pb-1">
         <p className="px-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">

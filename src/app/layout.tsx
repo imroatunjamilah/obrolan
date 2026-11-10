@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "UPA BK • Ruang Obrolan",
+  title: "UPA BK UTM • Ruang Layanan Konseling",
   description:
-    "Asisten awal berbasis AI untuk mahasiswa UPA BK UTM — prototipe riset.",
+    "Pendaftaran, skrining DASS-21, dan konseling awal berbasis LLM untuk mahasiswa — prototipe riset UPA BK UTM.",
   robots: { index: false, follow: false },
 };
 

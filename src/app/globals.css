@@ -1,0 +1,200 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* The :root variables hold RAW HSL components (e.g. "263 65% 55%"), so every
+     colour mapping must be wrapped in hsl() — a bare `var(--primary)` would
+     compile to an invalid value like `color: 263 65% 55%` and fall back to
+     black/unstyled. */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-ring: hsl(var(--ring));
+  --color-input: hsl(var(--input));
+  --color-border: hsl(var(--border));
+  --color-destructive: hsl(var(--destructive));
+  --color-crisis: hsl(var(--crisis));
+  --color-crisis-soft: hsl(var(--crisis-soft));
+  --color-handoff: hsl(var(--handoff));
+  --color-handoff-soft: hsl(var(--handoff-soft));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card: hsl(var(--card));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Light mode is the priority — warm off-white background + warm violet primary.
+   The violet (hsl 263 65% 55%) is the ORIGINAL UPA BK theme colour: warm,
+   reassuring, and distinct from the indigo/blue of typical admin tools.
+   --crisis / --handoff are semantic colours for the 3-layer safety UI:
+   crisis escalations render red, human-handoff states render calm emerald. */
+:root {
+  --radius: 0.65rem;
+  --background: 36 33% 98%;
+  --foreground: 240 10% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 12%;
+  --primary: 263 65% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 240 5% 96%;
+  --secondary-foreground: 240 10% 12%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+  --accent: 263 30% 96%;
+  --accent-foreground: 263 65% 40%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 263 65% 55%;
+  --crisis: 0 72% 51%;
+  --crisis-soft: 0 80% 96%;
+  --handoff: 160 60% 38%;
+  --handoff-soft: 160 60% 95%;
+  --chart-1: 263 65% 55%;
+  --chart-2: 160 60% 38%;
+  --chart-3: 38 70% 50%;
+  --chart-4: 320 45% 55%;
+  --chart-5: 280 40% 55%;
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 240 10% 12%;
+  --sidebar-primary: 263 65% 55%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 263 30% 96%;
+  --sidebar-accent-foreground: 263 65% 40%;
+  --sidebar-border: 240 6% 90%;
+  --sidebar-ring: 263 65% 55%;
+}
+
+/* Dark mode — kept close to shadcn defaults but tinted toward the violet primary. */
+.dark {
+  --background: 240 12% 8%;
+  --foreground: 36 20% 95%;
+  --card: 240 12% 11%;
+  --card-foreground: 36 20% 95%;
+  --popover: 240 12% 11%;
+  --popover-foreground: 36 20% 95%;
+  --primary: 263 60% 62%;
+  --primary-foreground: 240 12% 8%;
+  --secondary: 240 10% 16%;
+  --secondary-foreground: 36 20% 95%;
+  --muted: 240 10% 16%;
+  --muted-foreground: 240 8% 60%;
+  --accent: 263 25% 18%;
+  --accent-foreground: 263 70% 78%;
+  --destructive: 0 65% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 8% 20%;
+  --input: 240 8% 20%;
+  --ring: 263 60% 62%;
+  --crisis: 0 65% 58%;
+  --crisis-soft: 0 40% 18%;
+  --handoff: 160 50% 50%;
+  --handoff-soft: 160 25% 14%;
+  --sidebar: 240 12% 10%;
+  --sidebar-foreground: 36 20% 95%;
+  --sidebar-primary: 263 60% 62%;
+  --sidebar-primary-foreground: 240 12% 8%;
+  --sidebar-accent: 263 25% 18%;
+  --sidebar-accent-foreground: 263 70% 78%;
+  --sidebar-border: 240 8% 20%;
+  --sidebar-ring: 263 60% 62%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Slim, warm scrollbar for the message transcript + sidebar list. */
+.chat-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.35) transparent;
+}
+.chat-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.chat-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.25);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.chat-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--primary) / 0.4);
+}
+
+/* Lightweight markdown rendering for bot replies (the system prompt may emit
+   bullet/numbered lists). Kept intentionally minimal and warm. */
+.prose-chatbot p {
+  margin: 0 0 0.4em 0;
+}
+.prose-chatbot p:last-child {
+  margin-bottom: 0;
+}
+.prose-chatbot ul {
+  list-style: disc;
+  padding-left: 1.1rem;
+  margin: 0.3em 0;
+}
+.prose-chatbot ol {
+  list-style: decimal;
+  padding-left: 1.2rem;
+  margin: 0.3em 0;
+}
+.prose-chatbot li {
+  margin: 0.15em 0;
+}
+.prose-chatbot strong {
+  font-weight: 600;
+}
+.prose-chatbot em {
+  font-style: italic;
+}
+.prose-chatbot a {
+  text-decoration: underline;
+}
+.prose-chatbot code {
+  background: hsl(var(--muted));
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}

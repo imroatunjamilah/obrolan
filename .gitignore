@@ -1,0 +1,67 @@
+# ============================================================
+# .gitignore — Chatbox UPA BK (Next.js 16 + Prisma SQLite)
+# ============================================================
+
+# --- Dependencies ---
+node_modules/
+/.pnp
+.pnp.*
+.yarn/
+
+# --- Next.js build output ---
+/.next/
+/out/
+/build
+
+# --- TypeScript ---
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Logs ---
+*.log
+dev.out.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# --- Environment & kredensial (JANGAN PERNAH commit) ---
+.env
+.env.*
+!.env.example
+.z-ai-config
+*.pem
+local-*
+.claude
+
+# --- Database runtime (SQLite) ---
+*.db
+*.db-journal
+*.sqlite
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- Vercel ---
+.vercel
+
+# --- Artefak sandbox & sesi kerja (bukan bagian aplikasi) ---
+.git-backup-sandbox/
+.zscripts/
+.ssh-deploy/
+agent-ctx/
+download/
+examples/
+mini-services/
+scripts/
+skills/
+tests/
+tool-results/
+upload/
+upa-bk-utm/
+worklog.md
+Caddyfile
+/--full-page

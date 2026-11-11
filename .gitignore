@@ -59,7 +59,12 @@ agent-ctx/
 download/
 examples/
 mini-services/
-scripts/*.py
+scripts/*
+!scripts/*.mjs
+!scripts/*.js
+!scripts/olah_dass_excel.py
+!scripts/buat_excel_olah.py
+!scripts/buat_zip_kode.py
 skills/
 tests/
 tool-results/

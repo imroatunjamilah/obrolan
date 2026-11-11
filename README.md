@@ -71,3 +71,27 @@ prompts/chatbot_system_prompt.md
 
 Prototipe riset, bukan pengganti konseling profesional. Dalam kondisi darurat
 hubungi **112** atau **119 ext. 8** (Sejiwa, Kementerian Kesehatan RI).
+
+## Deploy ke Vercel (gratis)
+
+Aplikasi siap deploy ke [Vercel](https://vercel.com) plan gratis dengan
+database Postgres (Neon) — repo ini berisi `vercel.json` +
+`scripts/vercel-build.mjs` yang otomatis membuat tabel saat build.
+
+1. Push repo ke GitHub, lalu di [vercel.com](https://vercel.com) masuk via
+   GitHub → **Add New… → Project** → import repo.
+2. Tambahkan *Environment Variables* (minta juga di build):
+   - `LLM_API_KEY` — kunci API model (contoh gratis: Z.ai Open Platform,
+     model `glm-4.5-flash`).
+   - `LLM_BASE_URL` — mis. `https://api.z.ai/api/paas/v4`.
+   - `LLM_MODEL` — mis. `glm-4.5-flash`.
+   - `SECRET_KEY` — string acak (`openssl rand -hex 32`).
+   - `ADMIN_USERNAME` / `ADMIN_PASSWORD` — akun petugas awal (ganti sandi!).
+3. **Deploy** → setelah jadi, buka tab **Storage → Marketplace → Neon
+   Postgres** → *Create Database* → *Connect to project* → redeploy.
+   Tabel dibuat otomatis oleh `prisma db push` saat build.
+4. Login petugas di halaman utama (modul Petugas).
+
+Catatan: skema pengembangan memakai SQLite (`prisma/schema.prisma`);
+di Vercel build memakai varian Postgres `prisma/schema.postgres.prisma`
+dengan model yang identik.

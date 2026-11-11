@@ -17,6 +17,10 @@ interface MessageRequestBody {
   text?: string;
 }
 
+// Respons LLM bisa memakan waktu >10 detik default; di Vercel (plan gratis
+// Hobby) izinkan sampai 60 detik. Diabaikan oleh runtime non-Vercel.
+export const maxDuration = 60;
+
 const MAX_TEXT = 2000;
 const DEFAULT_TITLE = 'Percakapan Baru';
 

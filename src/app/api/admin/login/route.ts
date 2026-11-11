@@ -2,11 +2,16 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyPassword, createSessionToken } from '@/lib/auth';
 import { ADMIN_COOKIE } from '@/lib/admin-guard';
+import { ensureDefaultAdmin } from '@/lib/ensure-admin';
 
 // POST /api/admin/login — autentikasi akun internal (admin/petugas UPA BK).
 // Sesi = cookie httpOnly bertanda tangan HMAC (stateless, bermasa aktif).
 export async function POST(req: Request) {
   try {
+    // Deploy baru dengan database kosong tetap bisa dimasuki: buat akun admin
+    // awal bila tabel AdminUser masih kosong (idempoten).
+    await ensureDefaultAdmin();
+
     const body = await req.json();
     const username = typeof body.username === 'string' ? body.username.trim() : '';
     const password = typeof body.password === 'string' ? body.password : '';

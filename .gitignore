@@ -48,6 +48,9 @@ Thumbs.db
 # --- Vercel ---
 .vercel
 
+# --- Data responden & artefak analisis (SENSITIF — jangan pernah ke repo) ---
+data_out/
+
 # --- Artefak sandbox & sesi kerja (bukan bagian aplikasi) ---
 .git-backup-sandbox/
 .zscripts/
@@ -56,7 +59,7 @@ agent-ctx/
 download/
 examples/
 mini-services/
-scripts/
+scripts/*.py
 skills/
 tests/
 tool-results/

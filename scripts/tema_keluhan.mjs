@@ -87,7 +87,7 @@ async function main() {
   // keluhan yang benar-benar berisi
   const items = [];
   for (const r of rows) {
-    const k = (r.keluhan || '').trim();
+    const k = (r.Keluhan || '').trim();
     const meaningful = k && k !== '-' && k !== '(-)' && k.length > 2;
     items.push({ id: r.ID, text: meaningful ? k : '-', });
   }

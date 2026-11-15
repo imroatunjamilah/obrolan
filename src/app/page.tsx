@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { MessageCircleHeart, Menu } from 'lucide-react';
+import { useCallback, useState, useSyncExternalStore } from 'react';
+import { MessageCircleHeart, Menu, CalendarClock } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
@@ -17,6 +17,7 @@ import { EmptyState } from '@/components/chat/empty-state';
 import { Dass21Flow } from '@/components/screening/dass21-flow';
 import { RegistrationForm } from '@/components/registration/registration-form';
 import { AdminPanel } from '@/components/admin/admin-panel';
+import { PenjadwalanApp } from '@/components/penjadwalan/penjadwalan-app';
 import { loadStudentSession } from '@/lib/student-session';
 
 async function createConversationApi(): Promise<{ id: string }> {
@@ -39,6 +40,16 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const qc = useQueryClient();
+
+  // Modul KP (Sistem Penjadwalan Konseling) diakses lewat ?modul=penjadwalan.
+  // useSyncExternalStore: SSR memakai snapshot false (Ruang Layanan), lalu
+  // klien mengganti ke snapshot nyata tanpa mismatch hidrasi.
+  const kpMode = useSyncExternalStore(
+    // Navigasi ke/layar ini selalu full-page load, jadi langganan no-op cukup.
+    () => () => undefined,
+    () => new URLSearchParams(window.location.search).get('modul') === 'penjadwalan',
+    () => false
+  );
 
   // Create a new conversation from the empty-state CTA (mirrors the sidebar button).
   const createMut = useMutation({
@@ -75,6 +86,10 @@ export default function Home() {
     registrasi: 'Pendaftaran Layanan',
     petugas: 'Panel Petugas',
   };
+
+  if (kpMode) {
+    return <PenjadwalanApp />;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -190,7 +205,14 @@ export default function Home() {
         <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-1 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 text-center text-[11px] text-muted-foreground sm:flex-row sm:justify-between sm:px-6 sm:text-left">
           <p>
             Prototipe riset — UPA BK UTM • November 2026 • Bukan pengganti
-            konseling profesional.
+            konseling profesional.{' '}
+            <a
+              href="/?modul=penjadwalan"
+              className="inline-flex items-center gap-1 font-medium text-primary underline-offset-2 hover:underline"
+            >
+              <CalendarClock className="size-3" aria-hidden="true" />
+              Modul KP: Penjadwalan Konseling
+            </a>
           </p>
           <p className="flex items-center gap-1">
             Krisis? Hubungi{' '}

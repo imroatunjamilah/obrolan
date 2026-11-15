@@ -95,3 +95,52 @@ model Message {
 
   @@index([conversationId])
 }
+
+// ============================================================
+// Modul KP — Sistem Penjadwalan Konseling UPA BK.
+// Alur: pengajuan keluhan → klasifikasi urgensi (TF-IDF +
+// Naive Bayes/SVM/Logistic Regression) → penjadwalan Greedy
+// berbasis prioritas (kuota konselor, tanpa bentrok, kasus
+// DARURAT didahulukan ≤ 48 jam).
+// Data demo bersifat DUMMY/sintetis, bukan data skrining asli.
+// ============================================================
+
+model Konselor {
+  id           String                @id @default(cuid())
+  nama         String
+  spesialisasi String
+  kuotaHarian  Int                   @default(3) // maksimum sesi per konselor per hari
+  isActive     Boolean               @default(true)
+  penugasan    PermintaanKonseling[]
+}
+
+model PermintaanKonseling {
+  id             String    @id @default(cuid())
+  nama           String
+  nim            String
+  prodi          String
+  kontak         String
+  keluhan        String // teks keluhan yang diklasifikasi
+  prefHari       String    @default("[]") // JSON array nama hari (Senin..Jumat)
+  prefSesi       String    @default("[]") // JSON array kode sesi (S1..S4)
+  // --- hasil klasifikasi urgensi ---
+  prioritas      String    @default("NORMAL") // DARURAT | SEDANG | NORMAL
+  confidence     Float     @default(0) // probabilitas kelas terpilih (0-1)
+  modelDigunakan String    @default("") // naive_bayes | svm | logistic_regression
+  skorKelas      String    @default("{}") // JSON probabilitas per kelas
+  kataKunci      String    @default("[]") // JSON array kata kunci TF-IDF penunjang
+  status         String    @default("menunggu") // menunggu | terjadwal | selesai | ditolak
+  // --- hasil penjadwalan Greedy ---
+  jadwalTanggal  String? // ISO yyyy-mm-dd
+  jadwalHari     String? // Senin..Jumat
+  jadwalSesi     String? // S1..S4
+  konselorId     String?
+  konselor       Konselor? @relation(fields: [konselorId], references: [id], onDelete: SetNull)
+  catatanPetugas String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status])
+  @@index([prioritas])
+  @@index([jadwalTanggal, jadwalSesi])
+}
